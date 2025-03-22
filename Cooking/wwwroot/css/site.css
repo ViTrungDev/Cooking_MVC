@@ -1,0 +1,88 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 62.5%;
+}
+
+body {
+    font-size: 1.6rem;
+    font-family: "Roboto",sans-serif;
+    background-color:var(--color_pink--light);
+}
+/*======================= color page ======================*/
+:root {
+    --color_black: #000000;
+    --color_grey: #D9D9D9;
+    --color_white: #FFFFFF;
+    --color_pink: #D29191;
+    --color_pink--light: #FBF0FB;
+    --color_pink--dark: #B9617F;
+    --color_balck--light: #00000099;
+    --color-text: #00000080;
+}
+/*========================== button =======================*/
+.btn {
+    width: 720px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: var(--color_pink);
+}
+.btn:hover {
+    opacity: 0.9;
+    opacity: 0.9;
+}
+/*=========================== layout ======================*/
+.layout_main {
+    width: 1440px;
+    max-width: calc(100%-48px);
+    margin: 0 auto;
+}
+
+a {
+    text-decoration: none;
+    color: var(--color_black) !important;
+}
+/*=============================== navbar =====================*/
+.navbar__menu{
+    display:flex;
+    column-gap:24px;
+}
+.nav-link{
+    margin:10px;
+}
+.nav-item{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.navbar-cart-user {
+    display: flex;
+    column-gap: 34px;
+    justify-content: center;
+    align-items: center;
+}
+a.nav-link.active {
+    background-color: var(--color_pink--dark);
+    color: var( --color_white) !important;
+    font-weight: 600;
+    padding:10px 30px !important;
+    border-radius:5px;
+}
+/*=============================== banner =====================*/
+.banner {
+    width: 100%;
+    height: 600px;
+    background-image: url(../images/banner.jpg);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--color_white);
+    font-size: 4.8rem;
+    font-weight: 700;
+    text-align: center;
+}

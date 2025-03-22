@@ -1,0 +1,35 @@
+﻿# Thư mục build
+bin/
+obj/
+
+# IDE và cài đặt môi trường
+.vs/
+.vscode/
+.idea/
+
+# Các file tạm và log
+*.log
+*.tmp
+
+# Thư viện và binary
+*.dll
+*.exe
+*.pdb
+
+# File cấu hình nhạy cảm
+appsettings.json
+appsettings.Development.json
+
+# Khóa package
+project.lock.json
+
+# Thư mục publish và deploy
+publish/
+out/
+# =========================  Clone dự án từ GitHub: =========================
+git clone https://github.com/username/repository-name.git
+cd repository-name
+dotnet restore
+dotnet build
+dotnet ef database update
+dotnet run

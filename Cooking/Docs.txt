@@ -1,0 +1,104 @@
+﻿Cài đặt gói NuGet Pomelo.EntityFrameworkCore.MySql
+
+----- Cài đặt gói để sử dụng Entity Framework Core với MySQL:
+
+dotnet add package Pomelo.EntityFrameworkCore.MySql --version 9.0.3
+(Phiên bản này sẽ tùy thuộc vào phiên bản của .NET mà bạn đang sử dụng, bạn có thể thay đổi phiên bản nếu cần.)
+
+
+
+-------- Cập nhật tệp appsettings.json để lưu trữ chuỗi kết nối
+
+Mở tệp appsettings.json và thêm chuỗi kết nối cơ sở dữ liệu MySQL. Ví dụ:
+
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=CookingDB;User=root;Password=yourpassword;"
+  }
+}
+Đảm bảo thay thế thông tin kết nối (như Server, Database, User, Password) cho phù hợp với cấu hình của bạn.
+
+
+
+-------- Tạo lớp DbContext
+
+Tạo một lớp DbContext để đại diện cho cơ sở dữ liệu. Trong ví dụ dưới đây, chúng ta tạo một lớp CookingDBContext để làm việc với bảng Register:
+
+
+using Microsoft.EntityFrameworkCore;
+
+namespace Cooking.Models.DBConnect
+{
+    public class CookingDBContext : DbContext
+    {
+        public DbSet<Register> Registers { get; set; }
+
+        public CookingDBContext(DbContextOptions<CookingDBContext> options)
+            : base(options)
+        {
+        }
+    }
+}
+Đảm bảo rằng Register là mô hình của bạn và chứa các trường tương ứng với bảng trong cơ sở dữ liệu.
+
+
+
+-----------   Cấu hình DbContext trong Program.cs (hoặc Startup.cs)
+
+ Cấu hình để sử dụng MySQL trong ứng dụng của bạn, mở Program.cs hoặc Startup.cs và thêm cấu hình sau:
+
+using Microsoft.EntityFrameworkCore;
+using Cooking.Models.DBConnect;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình DbContext sử dụng MySQL
+builder.Services.AddDbContext<CookingDBContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+
+var app = builder.Build();
+Đảm bảo rằng chuỗi kết nối trong appsettings.json được trỏ đến DefaultConnection.
+
+------------  Chạy Migrations để tạo cơ sở dữ liệu và bảng
+
+Nếu bạn sử dụng Entity Framework Core để tạo cơ sở dữ liệu, bạn cần chạy các migration để tạo bảng tương ứng. Đầu tiên, tạo migration:
+
+
+dotnet ef migrations add InitialCreate
+Sau đó, áp dụng migration để tạo cơ sở dữ liệu và các bảng:
+
+
+dotnet ef database update
+Lệnh này sẽ tạo bảng trong cơ sở dữ liệu MySQL theo mô hình DbContext của bạn.
+
+-------------  Cấu hình quyền truy cập (nếu cần)
+
+Đảm bảo bạn đã cấp quyền truy cập đúng cho tài khoản người dùng trong cơ sở dữ liệu MySQL mà bạn đã cấu hình trong chuỗi kết nối.
+
+------------   Kiểm tra kết nối
+
+Sau khi cấu hình hoàn tất, bạn có thể thử truy vấn cơ sở dữ liệu để xác minh rằng kết nối đã thành công, chẳng hạn như:
+
+
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<CookingDBContext>();
+var count = dbContext.Registers.Count();
+Console.WriteLine($"Số lượng người dùng: {count}");
+Đoạn mã này sẽ hiển thị số lượng người dùng trong bảng Register.
+
+============================================= Tổng hợp lại các bước =================================
+Cài đặt gói Pomelo.EntityFrameworkCore.MySql.
+
+Cập nhật chuỗi kết nối trong appsettings.json.
+
+Tạo lớp DbContext để kết nối với bảng trong cơ sở dữ liệu.
+
+Cấu hình DbContext trong Program.cs (hoặc Startup.cs).
+
+Chạy migration để tạo bảng trong cơ sở dữ liệu MySQL.
+
+Kiểm tra quyền truy cập cơ sở dữ liệu.
+
+Kiểm tra kết nối bằng cách thực hiện một truy vấn mẫu.
