@@ -16,9 +16,6 @@ obj/
 *.exe
 *.pdb
 
-# File cấu hình nhạy cảm
-appsettings.json
-appsettings.Development.json
 
 # Khóa package
 project.lock.json
