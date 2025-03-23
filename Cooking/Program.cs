@@ -34,6 +34,7 @@ using (var scope = app.Services.CreateScope())
     {
         // Truy vấn thử bảng Registers để khởi tạo và in thông tin ra console
         var userCount = context.Registers.Count();
+        Console.WriteLine("=============================== Connect with Database Success ==================================");
         Console.WriteLine($"So luong nguoi dung Registers: {userCount}");
     }
     catch (Exception ex)
