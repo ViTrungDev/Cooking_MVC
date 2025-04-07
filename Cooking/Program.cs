@@ -1,64 +1,95 @@
 ﻿using Cooking.Models.DBConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Lấy chuỗi kết nối từ appsettings.json
+// Load biến môi trường từ file .env
+DotNetEnv.Env.Load();
+
+string secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+string issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+string audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+
+
+// Cấu hình CORS cho phép frontend truy cập
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// Lấy chuỗi kết nối
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                      ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Cấu hình DbContext và ghi log SQL ra console
+// Cấu hình EF Core với MySQL
 builder.Services.AddDbContext<CookingDBConnect>((serviceProvider, options) =>
 {
     var logger = serviceProvider.GetRequiredService<ILogger<CookingDBConnect>>();
 
-    logger.LogInformation("Dang ket noi toi  MySQL...");
+    logger.LogInformation("Đang kết nối tới MySQL...");
 
     options.UseMySql(connectionString,
-     new MySqlServerVersion(new Version(8, 0, 30)))  // Định nghĩa phiên bản MySQL server bạn đang sử dụng
-     .EnableSensitiveDataLogging() // Log dữ liệu nhạy cảm (khi debug)
-     .LogTo(Console.WriteLine, LogLevel.Information);  // Log các câu SQL ra console
+     new MySqlServerVersion(new Version(8, 0, 30)))
+     .EnableSensitiveDataLogging()
+     .LogTo(Console.WriteLine, LogLevel.Information);
 });
 
-builder.Services.AddControllersWithViews();
+// Cấu hình JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+    });
+
+// Thêm controller
+builder.Services.AddControllers();
+builder.Configuration.AddEnvironmentVariables(); // thêm biến môi trường từ file .env
 
 var app = builder.Build();
 
-// Tạo scope để khởi tạo DbContext
+// Test kết nối DB khi chạy app
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<CookingDBConnect>();
 
     try
     {
-        // Truy vấn thử bảng Registers để khởi tạo và in thông tin ra console
         var userCount = context.Registers.Count();
-        Console.WriteLine("=============================== Connect with Database Success ==================================");
-        Console.WriteLine($"So luong nguoi dung Registers: {userCount}");
+        Console.WriteLine("=============================== Kết nối Database thành công ==================================");
+        Console.WriteLine($"Số lượng người dùng: {userCount}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Loi truy van database: {ex.Message}");
+        Console.WriteLine($"Lỗi kết nối DB: {ex.Message}");
     }
 }
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
+// Middleware
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-app.UseRouting();
+app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Map route mặc định
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"
-);
+// Chỉ map các controller API — KHÔNG map route mặc định MVC
+app.MapControllers();
 
 app.Run();

@@ -16,7 +16,8 @@ obj/
 *.exe
 *.pdb
 
-
+# env
+.env
 # Khóa package
 project.lock.json
 

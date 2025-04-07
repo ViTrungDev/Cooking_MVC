@@ -2,7 +2,7 @@
 
 ----- Cài đặt gói để sử dụng Entity Framework Core với MySQL:
 
-dotnet add package Pomelo.EntityFrameworkCore.MySql --version 9.0.3
+dotnet add package Pomelo.EntityFrameworkCore.MySql 
 (Phiên bản này sẽ tùy thuộc vào phiên bản của .NET mà bạn đang sử dụng, bạn có thể thay đổi phiên bản nếu cần.)
 
 
