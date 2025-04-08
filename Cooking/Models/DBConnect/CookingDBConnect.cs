@@ -9,5 +9,7 @@ namespace Cooking.Models.DBConnect
         }
 
         public DbSet<Register> Registers { get; set; } // Đối tượng mẫu
+        public DbSet<Cookingproduct> Cookingproducts { get; set; }
+
     }
 }

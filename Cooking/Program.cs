@@ -58,6 +58,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
         };
     });
+// phân quyền cho các API
+builder.Services.AddAuthorization(options =>
+        {
+         options.AddPolicy("AdminOnly", policy =>
+         policy.RequireClaim("Role", "Admin"));
+
+          options.AddPolicy("UserOnly", policy =>
+                policy.RequireClaim("Role", "User"));
+
+          options.AddPolicy("AdminOrUser", policy =>
+                policy.RequireClaim("Role", "Admin", "User"));
+        }
+      );
+
 
 // Thêm controller
 builder.Services.AddControllers();

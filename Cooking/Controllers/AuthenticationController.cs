@@ -66,13 +66,16 @@ namespace Cooking.Controllers
             if (user == null || !PasswordHelper.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
                 return BadRequest(new { message = "Email hoặc mật khẩu không chính xác!" });
 
-            var accessToken = CreateAccessToken(user);
+            // Gọi hàm tạo token có chứa quyền
+            var accessToken = CreateAccessToken(user);  // Đã có quyền ở trong
             var refreshToken = CreateRefreshToken();
 
+            // Thêm refresh token mới và xóa cái hết hạn
             user.RefreshTokens.Add(refreshToken);
             user.RefreshTokens.RemoveAll(t => t.Expires < DateTime.UtcNow || t.IsRevoked);
 
             await _dbcontext.SaveChangesAsync();
+            Console.WriteLine($"[LOGIN] {DateTime.Now} - Tài khoản '{user.Email}' đã đăng nhập. Quyền: {(user.IsAdmin ? "Admin" : "Người dùng")}");
 
             return Ok(new
             {
@@ -80,9 +83,11 @@ namespace Cooking.Controllers
                 accessToken,
                 refreshToken = refreshToken.Token,
                 userId = user.Id,
-                userName = user.UserName
+                userName = user.UserName,
+                isAdmin = user.IsAdmin  // Có thể trả ra để frontend biết
             });
         }
+
 
         // API Refresh Token: /api/authentication/refresh-token
         [HttpPost("refresh-token")]
@@ -139,33 +144,28 @@ namespace Cooking.Controllers
         {
             var claims = new[]
             {
-        new Claim(ClaimTypes.NameIdentifier, user.Id),
-        new Claim(ClaimTypes.Name, user.UserName),
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim("isAdmin", user.IsAdmin.ToString())
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim("IsAdmin", user.IsAdmin.ToString()),
+                new Claim("UserId", user.Id.ToString())
+            
+        // Có thể thêm Role nếu dùng
+        // new Claim(ClaimTypes.Role, user.Role)
     };
 
-            // Lấy các thông tin từ file .env thông qua IConfiguration
-            var secretKey = _configuration["JWT_SECRET_KEY"];
-            var issuer = _configuration["JWT_ISSUER"];
-            var audience = _configuration["JWT_AUDIENCE"];
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT_SECRET_KEY"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JWT_ISSUER"],
+                audience: _configuration["JWT_AUDIENCE"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: creds
+            );
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                SigningCredentials = credentials,
-                Issuer = issuer,
-                Audience = audience
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
 
 
         // Tạo Refresh Token

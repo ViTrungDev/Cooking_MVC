@@ -15,7 +15,7 @@ namespace Cooking.Models.DBConnect
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
         public DateTime CreatedAt { get; set; }
-        public bool IsAdmin { get; set; }
+        public bool IsAdmin { get; set; } = false;
         public string? ResetToken { get; set; } // Mã OTP
         public DateTime? ResetTokenExpires { get; set; } // Thời gian hết hạn OTP
 
