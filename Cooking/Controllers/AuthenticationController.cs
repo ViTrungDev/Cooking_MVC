@@ -143,14 +143,11 @@ namespace Cooking.Controllers
         private string CreateAccessToken(Register user)
         {
             var claims = new[]
-            {
+              {
                 new Claim(ClaimTypes.Name, user.Email),
-                new Claim("IsAdmin", user.IsAdmin.ToString()),
+                new Claim("Role", user.IsAdmin ? "Admin" : "User"),
                 new Claim("UserId", user.Id.ToString())
-            
-        // Có thể thêm Role nếu dùng
-        // new Claim(ClaimTypes.Role, user.Role)
-    };
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT_SECRET_KEY"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

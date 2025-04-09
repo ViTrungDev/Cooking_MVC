@@ -25,10 +25,8 @@ namespace Cooking.Controllers.Products
         [HttpPost("create")]
         public async Task<IActionResult> CreateProduct([FromForm] CookingproductInputDto request)
         {
-            var isAdmin = User.Claims.FirstOrDefault(c => c.Type == "IsAdmin")?.Value;
+            
 
-            if (isAdmin != "True")
-                return Forbid("Bạn không đủ quyền để thực hiện chức năng này!");
             // Sinh ID ngẫu nhiên 6 chữ số
             int newId = GenerateUniqueId();
 
@@ -54,8 +52,6 @@ namespace Cooking.Controllers.Products
                 name = request.name,
                 image = $"/images/{imageName}", // Lưu đường dẫn tương đối để hiển thị
                 price = request.price,
-                size = request.size,
-                quantity = request.quantity
             };
 
             _dbcontext.Cookingproducts.Add(newProduct);
@@ -77,7 +73,7 @@ namespace Cooking.Controllers.Products
             }
         }
         // Get ALl product: /api/product/getall
-        [Authorize(Policy = "AdminOrUser")]
+        [AllowAnonymous] // Bỏ phân quyền
         [HttpGet("getall")]
         public async Task<IActionResult> Getall()
         {
@@ -92,13 +88,11 @@ namespace Cooking.Controllers.Products
                     name = p.name,
                     image = p.image,
                     price = p.price,
-                    size = p.size,
-                    quantity = p.quantity
                 }).ToList()
             });
         }
         // Get api product{id}: /api/product/getbyid
-        [Authorize(Policy = "AdminOrUser")]
+        [AllowAnonymous]
         [HttpGet("getbyid/{id}")]
         public async Task<IActionResult> GetbyId(int id)
         {
@@ -116,8 +110,6 @@ namespace Cooking.Controllers.Products
                     name = product.name,
                     image = product.image,
                     price = product.price,
-                    size = product.size,
-                    quantity = product.quantity
                 };
                 return Ok(new { message = "Lấy sản phẩm thành công!", product = productDto });
             }
@@ -131,18 +123,13 @@ namespace Cooking.Controllers.Products
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromForm] CookingproductInputDto request)
         {
-            var isAdmin = User.Claims.FirstOrDefault(c => c.Type == "IsAdmin")?.Value;
-
-            if (isAdmin != "True")
-                return Forbid("Bạn không đủ quyền để thực hiện chức năng này!");
+            
             var product = await _dbcontext.Cookingproducts.FindAsync(id);
             if (product == null)
                 return NotFound("Không tìm thấy sản phẩm.");
 
             product.name = request.name;
             product.price = request.price;
-            product.size = request.size;
-            product.quantity = request.quantity;
 
             if (request.image != null)
             {
@@ -185,10 +172,7 @@ namespace Cooking.Controllers.Products
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var isAdmin = User.Claims.FirstOrDefault(c => c.Type == "IsAdmin")?.Value;
 
-            if (isAdmin != "True")
-                return Forbid("Bạn không đủ quyền để thực hiện chức năng này!");
             var product = await _dbcontext.Cookingproducts.FindAsync(id);
             if (product == null)
                 return NotFound("Không tìm thấy sản phẩm để xoá!");
