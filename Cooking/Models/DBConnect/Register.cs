@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Cooking.Models.DBConnect.Order;
+using Cooking.Models.DBConnect.UserModel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -21,6 +23,8 @@ namespace Cooking.Models.DBConnect
 
         // Danh sách RefreshTokens của người dùng (One-to-Many)
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public ICollection<OrderModel> Orders { get; set; } = new List<OrderModel>();
+        public UserInfo? UserInfo { get; set; }
 
         public override string ToString()
         {

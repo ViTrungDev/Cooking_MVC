@@ -26,7 +26,6 @@ namespace Cooking.Controllers.Products
         public async Task<IActionResult> CreateProduct([FromForm] CookingproductInputDto request)
         {
             
-
             // Sinh ID ngẫu nhiên 6 chữ số
             int newId = GenerateUniqueId();
 
@@ -66,7 +65,7 @@ namespace Cooking.Controllers.Products
             while (true)
             {
                 int newId = random.Next(100000, 1000000); // Random 6 chữ số
-                if (!_dbcontext.Cookingproducts.Any(p => p.id == newId))
+                if (!_dbcontext.Cookingproducts.Any(userID => userID.id == newId))
                 {
                     return newId;
                 }
@@ -82,12 +81,12 @@ namespace Cooking.Controllers.Products
             return Ok(new
             {
                 message = "Lấy danh sách sản phẩm thành công!",
-                products = products.Select(p => new CookingproductDto
+                products = products.Select(product => new CookingproductDto
                 {
-                    id = p.id,
-                    name = p.name,
-                    image = p.image,
-                    price = p.price,
+                    id = product.id,
+                    name = product.name,
+                    image = product.image,
+                    price = product.price,
                 }).ToList()
             });
         }
@@ -97,7 +96,7 @@ namespace Cooking.Controllers.Products
         public async Task<IActionResult> GetbyId(int id)
         {
           
-            var product = await _dbcontext.Cookingproducts.FirstOrDefaultAsync(p => p.id == id);
+            var product = await _dbcontext.Cookingproducts.FirstOrDefaultAsync(product => product.id == id);
             if (product == null)
             {
                 return NotFound(new { message = "Sản phẩm không tồn tại!" });
@@ -168,7 +167,7 @@ namespace Cooking.Controllers.Products
         }
 
         // API Delete product: /api/product/delete/{id}
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = "Admin")]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {

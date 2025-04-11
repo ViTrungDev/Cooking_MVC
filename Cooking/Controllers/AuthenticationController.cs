@@ -10,6 +10,7 @@ using Cooking.Models;
 using Cooking.Models.DOTs;
 using Cooking.Models.DBConnect;
 using Cooking.Helpers;
+using Cooking.Models.DBConnect.UserModel;
 
 namespace Cooking.Controllers
 {
@@ -50,6 +51,17 @@ namespace Cooking.Controllers
             };
 
             _dbcontext.Registers.Add(newUser);
+            await _dbcontext.SaveChangesAsync();
+
+            var userInfo = new UserInfo
+            {
+                UserId = newUser.Id,
+                UserName = newUser.UserName,
+                Avatar = "/images/default-avatar.png", 
+                Phone = null,
+                Address = null
+            };
+            _dbcontext.UserInfo.Add(userInfo);
             await _dbcontext.SaveChangesAsync();
 
             return Ok(new { message = "Đăng ký thành công!", newUser });

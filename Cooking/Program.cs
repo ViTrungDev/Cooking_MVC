@@ -98,7 +98,7 @@ using (var scope = app.Services.CreateScope())
 
 // Middleware
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles();// Đảm bảo có dòng này để cho phép truy cập file từ wwwroot
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
