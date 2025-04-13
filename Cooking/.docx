@@ -1,0 +1,80 @@
+Yêu cầu trước khi bắt đầu:
+Cài đặt Docker Desktop
+
+Cài Visual Studio Code
+
+Tài khoản GitHub và đã được cấp quyền truy cập repo
+
+(Không cần cài MySQL hoặc .NET SDK thủ công)
+
+=======================================================================================================================
+ Bước 1: Clone project về
+
+git clone https://github.com/username/repository-name.git
+cd cooking/Cooking
+cd repository-name
+dotnet restore
+dotnet build
+dotnet ef database update
+dotnet run
+
+Bước 2: Build image Docker
+docker build -t trungvi2004/cooking-image .
+
+Bước 3:Chạy MySQL và ứng dụng bằng Docker Compose
+docker-compose up -d
+- MySQL sẽ chạy ở cổng 3307, ứng dụng ASP.NET sẽ chạy ở cổng 7187
+
+Bước 4:  Truy cập web
+Mở trình duyệt hoặc postman
+http://localhost:7187
+
+
+
+--------------------------------------------------------
+*  Khi cần sửa code:
+1 Sửa code trong thư mục Cooking/
+
+2 Build lại image nếu thay đổi code .NET:
+    docker build -t trungvi2004/cooking-image .
+    docker restart cooking-app
+3 Push code lên GitHub
+1. Add file cần thiết
+    git add .
+    ❌ Không add thư mục data/ trong Cooking/data/ (đã ignore)
+
+2. Commit
+    git commit -m "Cập nhật chức năng ABC"
+3. Push
+    git push origin main
+    
+📦 Khi cần đẩy image Docker lên Docker Hub:
+    docker login
+    docker tag cooking-image trungvi2004/cooking-image
+    docker push trungvi2004/cooking-image
+
+============================================= Ko dùng docker =======================================
+Bước 1: Clone project về
+
+git clone https://github.com/username/repository-name.git
+cd cooking/Cooking
+cd repository-name
+dotnet restore
+dotnet build
+dotnet ef database update
+dotnet run
+
+* =======================================Đẩy code lên git==================================
+
+*  Khi cần sửa code:
+1 Sửa code trong thư mục Cooking/
+
+1. Add file cần thiết
+    git add .
+    ❌ Không add thư mục data/ trong Cooking/data/ (đã ignore)
+
+2. Commit
+    git commit -m "Cập nhật chức năng ABC"
+3. Push
+    git push origin main
+    
