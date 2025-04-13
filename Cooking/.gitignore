@@ -24,6 +24,13 @@ project.lock.json
 # Thư mục publish và deploy
 publish/
 out/
+# Ignore MySQL socket file
+/data/
+/Cooking/data/
+Cooking/Cooking/data/
+Cooking/data/mysql.sock
+Cooking/data/*.cnf
+Cooking/data/*.index
 # =========================  Clone dự án từ GitHub: =========================
 git clone https://github.com/username/repository-name.git
 cd repository-name

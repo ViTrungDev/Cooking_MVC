@@ -70,6 +70,10 @@ namespace Cooking.Controllers.Order
                 };
                 _dbcontext.OrderDetails.Add(detail);
             }
+            foreach (var entry in _dbcontext.ChangeTracker.Entries())
+            {
+                Console.WriteLine($"Entity: {entry.Entity.GetType().Name}, State: {entry.State}");
+            }
 
             await _dbcontext.SaveChangesAsync();
 

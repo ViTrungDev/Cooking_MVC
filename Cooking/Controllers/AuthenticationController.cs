@@ -39,9 +39,12 @@ namespace Cooking.Controllers
 
             PasswordHelper.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
+            // Tạo trước 1 ID dùng chung
+            var userId = IdGenerator.GenerateId(); ;
+
             var newUser = new Register
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = userId,
                 UserName = request.Username,
                 Email = request.Email,
                 PasswordHash = passwordHash,
@@ -50,18 +53,21 @@ namespace Cooking.Controllers
                 IsAdmin = false
             };
 
-            _dbcontext.Registers.Add(newUser);
-            await _dbcontext.SaveChangesAsync();
-
             var userInfo = new UserInfo
             {
-                UserId = newUser.Id,
+                UserId = userId, 
                 UserName = newUser.UserName,
-                Avatar = "/images/default-avatar.png", 
+                Avatar = "/images/default-avatar.png",
+                Email = newUser.Email,
                 Phone = null,
                 Address = null
             };
-            _dbcontext.UserInfo.Add(userInfo);
+
+            // Gán ngược lại vào thuộc tính điều hướng nếu muốn
+            newUser.UserInfo = userInfo;
+
+            // Thêm vào DbContext
+            _dbcontext.Registers.Add(newUser); // EF sẽ tự thêm cả UserInfo vì có liên kết 1-1
             await _dbcontext.SaveChangesAsync();
 
             return Ok(new { message = "Đăng ký thành công!", newUser });

@@ -2,19 +2,21 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-
 namespace Cooking.Models.DBConnect.UserModel
 {
     public class UserInfo
     {
         [Key]
-        [ForeignKey("Register")] // Khóa chính đồng thời là khóa ngoại
-        public string? UserName { get; set; }
+        [ForeignKey("Register")] // vừa là khóa chính vừa là khóa ngoại
+        public string? UserId { get; set; }
+
         public string? Avatar { get; set; } = "/images/default-avatar.png";
         public string? Phone { get; set; }
         public string? Address { get; set; }
-        [JsonIgnore] // 👈 Ngăn JSON vòng lặp
-        public string? UserId { get; set; }
-        public Register Register { get; set; }
+        public string? Email { get; set; }
+
+        public string? UserName { get; set; }
+        [JsonIgnore]
+        public Register Register { get; set; } = null!;
     }
 }

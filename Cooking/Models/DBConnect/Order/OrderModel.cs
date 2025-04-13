@@ -18,6 +18,7 @@ namespace Cooking.Models.DBConnect.Order
         [Key]
         [StringLength(8)]
         public string id { get; set; }
+        public string? RegisterId { get; set; }
 
         public string customer_name { get; set; }
         public string phone { get; set; }
