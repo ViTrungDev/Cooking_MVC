@@ -40,7 +40,7 @@ namespace Cooking.Controllers
             PasswordHelper.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             // Tạo trước 1 ID dùng chung
-            var userId = IdGenerator.GenerateId(); ;
+            var userId = IdGenerator.GenerateId();
 
             var newUser = new Register
             {
@@ -55,7 +55,7 @@ namespace Cooking.Controllers
 
             var userInfo = new UserInfo
             {
-                UserId = userId, 
+                UserId = userId,
                 UserName = newUser.UserName,
                 Avatar = "/images/default-avatar.png",
                 Email = newUser.Email,
@@ -63,11 +63,9 @@ namespace Cooking.Controllers
                 Address = null
             };
 
-            // Gán ngược lại vào thuộc tính điều hướng nếu muốn
             newUser.UserInfo = userInfo;
 
-            // Thêm vào DbContext
-            _dbcontext.Registers.Add(newUser); // EF sẽ tự thêm cả UserInfo vì có liên kết 1-1
+            _dbcontext.Registers.Add(newUser);
             await _dbcontext.SaveChangesAsync();
 
             return Ok(new { message = "Đăng ký thành công!", newUser });
@@ -84,8 +82,8 @@ namespace Cooking.Controllers
             if (user == null || !PasswordHelper.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
                 return BadRequest(new { message = "Email hoặc mật khẩu không chính xác!" });
 
-            // Gọi hàm tạo token có chứa quyền
-            var accessToken = CreateAccessToken(user);  // Đã có quyền ở trong
+            // Tạo accessToken và refreshToken
+            var accessToken = CreateAccessToken(user);
             var refreshToken = CreateRefreshToken();
 
             // Thêm refresh token mới và xóa cái hết hạn
@@ -95,27 +93,41 @@ namespace Cooking.Controllers
             await _dbcontext.SaveChangesAsync();
             Console.WriteLine($"[LOGIN] {DateTime.Now} - Tài khoản '{user.Email}' đã đăng nhập. Quyền: {(user.IsAdmin ? "Admin" : "Người dùng")}");
 
+            // Lưu refreshToken vào cookie
+            Response.Cookies.Append("refreshToken", refreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,  // Cookie chỉ có thể truy cập từ server, không thể truy cập qua JavaScript
+                Secure = false,   // Đảm bảo Secure=true nếu bạn sử dụng HTTPS
+                SameSite = SameSiteMode.Strict,  // Cấm gửi cookie từ các domain khác
+                MaxAge = TimeSpan.FromDays(7)  // Thời gian sống của cookie (7 ngày)
+            });
+
             return Ok(new
             {
                 message = "Đăng nhập thành công!",
                 accessToken,
-                refreshToken = refreshToken.Token,
+                refreshToken = refreshToken.Token, // Trả về refresh token trong response body (nếu cần)
                 userId = user.Id,
                 userName = user.UserName,
-                isAdmin = user.IsAdmin  // Có thể trả ra để frontend biết
+                isAdmin = user.IsAdmin
             });
         }
 
-
         // API Refresh Token: /api/authentication/refresh-token
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken(string refreshToken)
+        public async Task<IActionResult> RefreshToken()
         {
+            // Lấy refreshToken từ cookie
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized(new { message = "Không tìm thấy refresh token trong cookie!" });
+
             var user = await _dbcontext.Registers
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshToken));
 
-            if (user == null) return Unauthorized(new { message = "Token không hợp lệ!" });
+            if (user == null)
+                return Unauthorized(new { message = "Token không hợp lệ!" });
 
             var storedToken = user.RefreshTokens.FirstOrDefault(t => t.Token == refreshToken);
             if (storedToken == null || storedToken.Expires < DateTime.UtcNow || storedToken.IsRevoked)
@@ -129,6 +141,15 @@ namespace Cooking.Controllers
 
             await _dbcontext.SaveChangesAsync();
 
+            // Lưu refreshToken mới vào cookie
+            Response.Cookies.Append("refreshToken", newRefreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,  // Đảm bảo Secure=true nếu bạn sử dụng HTTPS
+                SameSite = SameSiteMode.Strict,
+                MaxAge = TimeSpan.FromDays(7)
+            });
+
             return Ok(new
             {
                 accessToken = CreateAccessToken(user),
@@ -138,7 +159,7 @@ namespace Cooking.Controllers
 
         // API Logout: /api/authentication/logout
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout(string userId, string refreshToken)
+        public async Task<IActionResult> Logout(string userId)
         {
             var user = await _dbcontext.Registers
                 .Include(u => u.RefreshTokens)
@@ -146,13 +167,8 @@ namespace Cooking.Controllers
 
             if (user == null) return BadRequest(new { message = "Người dùng không tồn tại!" });
 
-            var token = user.RefreshTokens.FirstOrDefault(t => t.Token == refreshToken);
-            if (token != null)
-            {
-                token.IsRevoked = true;
-                token.RevokedAt = DateTime.UtcNow;
-                await _dbcontext.SaveChangesAsync();
-            }
+            // Xóa refreshToken trong cookie
+            Response.Cookies.Delete("refreshToken");
 
             return Ok(new { message = "Đăng xuất thành công!" });
         }
@@ -161,7 +177,7 @@ namespace Cooking.Controllers
         private string CreateAccessToken(Register user)
         {
             var claims = new[]
-              {
+            {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim("Role", user.IsAdmin ? "Admin" : "User"),
                 new Claim("UserId", user.Id.ToString())
@@ -180,8 +196,6 @@ namespace Cooking.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-
 
         // Tạo Refresh Token
         private RefreshToken CreateRefreshToken()

@@ -167,18 +167,31 @@ namespace Cooking.Controllers.Products
         }
 
         // API Delete product: /api/product/delete/{id}
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
+            // Tìm tất cả các đơn hàng liên quan đến sản phẩm
+            var orderDetails = await _dbcontext.OrderDetails
+                .Where(od => od.product_id == id)
+                .ToListAsync();
 
+            // Xóa các đơn hàng liên quan
+            if (orderDetails.Any())
+            {
+                _dbcontext.OrderDetails.RemoveRange(orderDetails);
+            }
+
+            // Tìm sản phẩm cần xóa
             var product = await _dbcontext.Cookingproducts.FindAsync(id);
             if (product == null)
                 return NotFound("Không tìm thấy sản phẩm để xoá!");
 
+            // Xóa sản phẩm
             _dbcontext.Cookingproducts.Remove(product);
             await _dbcontext.SaveChangesAsync();
-            return Ok("Xoá sản phẩm thành công!");
+
+            return Ok("Xoá sản phẩm và các đơn hàng liên quan thành công!");
         }
 
     }

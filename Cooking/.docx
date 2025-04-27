@@ -10,7 +10,7 @@ Tài khoản GitHub và đã được cấp quyền truy cập repo
 =======================================================================================================================
  Bước 1: Clone project về
 
-git clone https://github.com/username/repository-name.git
+git clone https://github.com/ViTrungDev/Cooking_MVC.git
 cd cooking/Cooking
 cd repository-name
 dotnet restore
@@ -56,7 +56,7 @@ http://localhost:7187
 ============================================= Ko dùng docker =======================================
 Bước 1: Clone project về
 
-git clone https://github.com/username/repository-name.git
+git clonehttps://github.com/ViTrungDev/Cooking_MVC.git
 cd cooking/Cooking
 cd repository-name
 dotnet restore
