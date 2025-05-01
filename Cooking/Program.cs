@@ -14,16 +14,15 @@ string secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
 string issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
 string audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
-
 // Cấu hình CORS cho phép frontend truy cập
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") 
+        policy.WithOrigins("http://localhost:3000")  // Chỉ cho phép frontend này
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();  // Quan trọng để gửi cookie
+              .AllowCredentials();  // Quan trọng khi dùng cookie hoặc header Authorization
     });
 });
 
@@ -59,24 +58,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
         };
     });
-// phân quyền cho các API
+
+// Phân quyền cho các API
 builder.Services.AddAuthorization(options =>
-        {
-         options.AddPolicy("AdminOnly", policy =>
-         policy.RequireClaim("Role", "Admin"));
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireClaim("Role", "Admin"));
 
-          options.AddPolicy("UserOnly", policy =>
-                policy.RequireClaim("Role", "User"));
+    options.AddPolicy("UserOnly", policy =>
+        policy.RequireClaim("Role", "User"));
 
-          options.AddPolicy("AdminOrUser", policy =>
-                policy.RequireClaim("Role", "Admin", "User"));
-        }
-      );
-
+    options.AddPolicy("AdminOrUser", policy =>
+        policy.RequireClaim("Role", "Admin", "User"));
+});
 
 // Thêm controller
 builder.Services.AddControllers();
-builder.Configuration.AddEnvironmentVariables(); // thêm biến môi trường từ file .env
+builder.Configuration.AddEnvironmentVariables(); // Thêm biến môi trường từ file .env
 
 var app = builder.Build();
 
@@ -99,10 +97,10 @@ using (var scope = app.Services.CreateScope())
 
 // Middleware
 app.UseHttpsRedirection();
-app.UseStaticFiles();// Đảm bảo có dòng này để cho phép truy cập file từ wwwroot
-app.UseCors("AllowAll");
+app.UseCors("AllowAll");  // Đảm bảo CORS chạy trước Authentication và Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles(); // Đảm bảo có dòng này để cho phép truy cập file từ wwwroot
 
 // Chỉ map các controller API — KHÔNG map route mặc định MVC
 app.MapControllers();
