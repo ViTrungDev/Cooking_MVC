@@ -51,6 +51,7 @@ namespace Cooking.Controllers.Products
                 name = request.name,
                 image = $"/images/{imageName}", // Lưu đường dẫn tương đối để hiển thị
                 price = request.price,
+                classify = request.classify
             };
 
             _dbcontext.Cookingproducts.Add(newProduct);
@@ -87,6 +88,7 @@ namespace Cooking.Controllers.Products
                     name = product.name,
                     image = product.image,
                     price = product.price,
+                    classify = product.classify,
                 }).ToList()
             });
         }
@@ -109,6 +111,7 @@ namespace Cooking.Controllers.Products
                     name = product.name,
                     image = product.image,
                     price = product.price,
+                    classify = product.classify,
                 };
                 return Ok(new { message = "Lấy sản phẩm thành công!", product = productDto });
             }
@@ -129,6 +132,7 @@ namespace Cooking.Controllers.Products
 
             product.name = request.name;
             product.price = request.price;
+            product.classify = request.classify;
 
             if (request.image != null)
             {

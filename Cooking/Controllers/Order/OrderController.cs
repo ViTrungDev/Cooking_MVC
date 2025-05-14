@@ -86,7 +86,7 @@ namespace Cooking.Controllers.Order
             return random.Next(10000000, 99999999).ToString();
         }
         // API Get: /api/order/getALL
-        [Authorize(Roles = "Admin")] // Chỉ cho phép admin truy cập
+        [Authorize(Policy = "AdminOnly")]
         [HttpGet("getAll")]
         public async Task<IActionResult> GetAll()
         {

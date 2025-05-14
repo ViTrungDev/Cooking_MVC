@@ -12,6 +12,7 @@ namespace Cooking.Models.DBConnect
         public string name { get; set; }
         public string? image { get; set; }
         public double price { get; set; }
+        public string? classify { get; set; }
         public List<OrderDetail> OrderDetails { get; set; }
         public override string ToString()
         {
